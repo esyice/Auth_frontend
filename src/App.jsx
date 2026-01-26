@@ -1,13 +1,13 @@
 import { useState } from "react";
 import "./App.css";
-import AuthPage from "./pages/Auth_page.jsx";
+import { BrowserRouter } from "react-router-dom";
+import GlobalRoutes from "./Routes/GlobalRoutes.jsx";
 
 function App() {
-
   return (
-    <>
-      <AuthPage />      
-    </>
+    <BrowserRouter>
+      <GlobalRoutes />
+    </BrowserRouter>
   );
 }
 
