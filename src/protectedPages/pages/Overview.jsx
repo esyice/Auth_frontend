@@ -1,59 +1,19 @@
 import { useEffect, useState } from "react";
 import DashboardCard from "../../components/DashboardCard";
 import { FiUser, FiShield, FiBarChart2 } from "react-icons/fi";
+import { useAuth } from "../../context/AuthContext";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const Overview = () => {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const token = localStorage.getItem("auth");
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-
-    fetch(`${BASE_URL}/dashboard`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => {
-        // 🔥 THIS IS THE FIX
-        if (res.status === 401 || res.status === 403) {
-          localStorage.removeItem("auth");
-          window.location.href = "/login";
-          return null;
-        }
-
-        return res.json();
-      })
-      .then((json) => {
-        if (!json) return;
-        setData(json);
-        console.log(json);
-      })
-      .catch((err) => {
-        console.error("Fetch error:", err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+  const { loading, user, meta } = useAuth();
 
   if (loading) return <div className="p-6">Loading...</div>;
-  if (!data) return <div className="p-6">No dashboard data</div>;
-  console.log("dashboard data ", data);
+  if (!user) return <div className="p-6">No dashboard data</div>;
+  // console.log("dashboard data  form overvire", user);
 
   // Fallback to default data if API call fails
   const DEFAULT_DASHBOARD = {
-    token: {
-      active: false,
-      expiry: "2026-01-31 23:59:59",
-      lastIssued: "2026-01-01 10:15:22",
-    },
     usage: {
       today: 124,
       limit: 1000,
@@ -62,7 +22,11 @@ const Overview = () => {
 
   // Safely extract data with fallbacks
 
-  const { user, token, usage } = data;
+  const safeData = {
+    usage: DEFAULT_DASHBOARD.usage,
+  };
+
+  const { usage } = safeData;
 
   const cards = [
     {
@@ -81,9 +45,9 @@ const Overview = () => {
       icon: <FiShield size={20} />,
       accent: "purple",
       items: [
-        { label: "Active Token", value: token.active ? "Yes" : "No" },
-        { label: "Token Expiry", value: token.expiry },
-        { label: "Last Token Issued", value: token.lastIssued },
+        { label: "Active Token", value: meta.totalTokens > 0 ? "Yes" : "No" },
+        { label: "Number of Active Token", value: meta.totalTokens },
+        { label: "Last Token Issued", value: meta.lastIssuedToken.issuedAt },
       ],
     },
     {

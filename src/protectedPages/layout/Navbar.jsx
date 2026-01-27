@@ -10,10 +10,16 @@ import {
   FiSettings,
 } from "react-icons/fi";
 import { NavLink } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Navbar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenu, setUserMenu] = useState(false);
+
+  const { user } = useAuth();
+  // if (user) {
+  //   console.log("User loaded:", user);
+  // }
 
   const BASE_URL = import.meta.env.VITE_BASE_URL;
   const handleLogout = async () => {
@@ -108,7 +114,7 @@ export default function Navbar() {
               <FiUser className="text-slate-300" />
             </div>
             <div>
-              <p className="text-sm text-white font-medium">John Doe</p>
+              <p className="text-sm text-white font-medium">{user?.name}</p>
               <p className="text-xs text-slate-400">Admin</p>
             </div>
           </div>
@@ -139,7 +145,7 @@ export default function Navbar() {
               "
             >
               <FiUser />
-              <span className="hidden sm:block text-sm">John Doe</span>
+              <span className="hidden sm:block text-sm">{user?.name}</span>
             </button>
 
             {userMenu && (
@@ -150,17 +156,6 @@ export default function Navbar() {
                   rounded-lg shadow-xl overflow-hidden
                 "
               >
-                <a
-                  href="/profile"
-                  className="
-                    flex items-center gap-2 px-4 py-2 text-sm
-                    text-slate-300 hover:bg-slate-800 hover:text-white
-                  "
-                >
-                  <FiUser />
-                  Profile
-                </a>
-
                 <button
                   onClick={handleLogout}
                   className="

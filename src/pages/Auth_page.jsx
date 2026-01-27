@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import useAuth from "../hooks/useAuth";
+import useAuthApi from "../hooks/useAuthApi";
+import { useAuth } from "../context/AuthContext";
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -14,40 +15,35 @@ const AuthPage = () => {
     formState: { errors },
   } = useForm();
 
-  const { registerUser, loginUser, loading, error, response } = useAuth();
+  const {
+    register: registerApi,
+    login: loginApi,
+    loading,
+    error,
+  } = useAuthApi();
+
+  const { login } = useAuth(); // ✅ context login
 
   const onSubmit = async (data) => {
-    if (isLogin) {
-      await loginUser({
-        email: data.email,
-        password: data.password,
-      });
-    } else {
-      await registerUser(data);
+    try {
+      if (isLogin) {
+        const res = await loginApi({
+          email: data.email,
+          password: data.password,
+        });
+
+        // 🔥 single source of truth
+        login(res.token);
+        navigate("/", { replace: true });
+      } else {
+        await registerApi(data);
+        setIsLogin(true);
+        reset();
+      }
+    } catch {
+      // error already handled in hook
     }
   };
-
-  const hasNavigated = useRef(false);
-
-  useEffect(() => {
-    // switch to login after registration
-    if (response?.success && !isLogin) {
-      setIsLogin(true);
-      reset();
-    }
-
-    // redirect after login (ONLY ONCE)
-    if (response?.token && !hasNavigated.current) {
-      hasNavigated.current = true;
-
-      localStorage.setItem("auth", response.token);
-
-      const authRoutes = ["/login"];
-      if (authRoutes.includes(location.pathname)) {
-        navigate("/", { replace: true });
-      }
-    }
-  }, [response]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
@@ -74,73 +70,35 @@ const AuthPage = () => {
 
         {/* FORM */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          {/* Register-only fields */}
           {!isLogin && (
             <>
-              <div>
-                <label className="text-gray-300 text-sm">Name</label>
-                <input
-                  {...register("name", { required: true })}
-                  className="w-full border bg-gray-800 text-gray-200 rounded-md px-4 py-2"
-                  placeholder="Enter your name"
-                />
-                {errors.name && (
-                  <p className="text-red-400 text-xs">Name is required</p>
-                )}
-              </div>
-
-              <div>
-                <label className="text-gray-300 text-sm">Address</label>
-                <input
-                  {...register("address", { required: true })}
-                  className="w-full border bg-gray-800 text-gray-200 rounded-md px-4 py-2"
-                  placeholder="Enter your address"
-                />
-                {errors.address && (
-                  <p className="text-red-400 text-xs">Address is required</p>
-                )}
-              </div>
-
-              <div>
-                <label className="text-gray-300 text-sm">
-                  Mobile (optional)
-                </label>
-                <input
-                  {...register("mobile")}
-                  className="w-full border bg-gray-800 text-gray-200 rounded-md px-4 py-2"
-                  placeholder="Enter your mobile"
-                />
-              </div>
+              <Input
+                label="Name"
+                error={errors.name}
+                {...register("name", { required: true })}
+              />
+              <Input
+                label="Address"
+                error={errors.address}
+                {...register("address", { required: true })}
+              />
+              <Input label="Mobile (optional)" {...register("mobile")} />
             </>
           )}
 
-          {/* Email */}
-          <div>
-            <label className="text-gray-300 text-sm">Email</label>
-            <input
-              {...register("email", { required: true })}
-              type="email"
-              className="w-full border bg-gray-800 text-gray-200 rounded-md px-4 py-2"
-              placeholder="Enter your email"
-            />
-            {errors.email && (
-              <p className="text-red-400 text-xs">Email is required</p>
-            )}
-          </div>
+          <Input
+            label="Email"
+            type="email"
+            error={errors.email}
+            {...register("email", { required: true })}
+          />
 
-          {/* Password */}
-          <div>
-            <label className="text-gray-300 text-sm">Password</label>
-            <input
-              {...register("password", { required: true })}
-              type="password"
-              className="w-full border bg-gray-800 text-gray-200 rounded-md px-4 py-2"
-              placeholder="Enter your password"
-            />
-            {errors.password && (
-              <p className="text-red-400 text-xs">Password is required</p>
-            )}
-          </div>
+          <Input
+            label="Password"
+            type="password"
+            error={errors.password}
+            {...register("password", { required: true })}
+          />
 
           <button
             type="submit"
@@ -155,38 +113,23 @@ const AuthPage = () => {
           </button>
         </form>
 
-        {/* Messages */}
         {error && <p className="mt-4 text-center text-red-400">{error}</p>}
-        {response?.message && (
-          <p className="mt-4 text-center text-green-400">{response.message}</p>
-        )}
-
-        <p className="text-center text-gray-400 mt-5 text-sm">
-          {isLogin ? (
-            <>
-              Don’t have an account?{" "}
-              <button
-                onClick={() => setIsLogin(false)}
-                className="text-blue-400 hover:underline"
-              >
-                Register
-              </button>
-            </>
-          ) : (
-            <>
-              Already have an account?{" "}
-              <button
-                onClick={() => setIsLogin(true)}
-                className="text-blue-400 hover:underline"
-              >
-                Login
-              </button>
-            </>
-          )}
-        </p>
       </div>
     </div>
   );
 };
 
 export default AuthPage;
+
+/* ===== Reusable Input ===== */
+const Input = React.forwardRef(({ label, error, ...props }, ref) => (
+  <div>
+    <label className="text-gray-300 text-sm">{label}</label>
+    <input
+      ref={ref}
+      {...props}
+      className="w-full border bg-gray-800 text-gray-200 rounded-md px-4 py-2"
+    />
+    {error && <p className="text-red-400 text-xs mt-1">{label} is required</p>}
+  </div>
+));

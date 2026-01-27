@@ -7,13 +7,11 @@ import {
   FiDownload,
   FiSlash,
 } from "react-icons/fi";
+import { useAuth } from "../../context/AuthContext";
 
 const Settings = () => {
   // 🔹 Default values (remove later in one go)
-  const user = {
-    name: "John Doe",
-    email: "john.doe@example.com",
-  };
+  const { user } = useAuth();
 
   return (
     <div className="space-y-6">
@@ -34,8 +32,8 @@ const Settings = () => {
           iconBg="bg-blue-500/10 text-blue-400"
         >
           <div className="space-y-4">
-            <Info label="Name" value={user.name} />
-            <Info label="Email" value={user.email} />
+            <Info label="Name" value={user?.name} />
+            <Info label="Email" value={user?.email} />
           </div>
         </Card>
 
