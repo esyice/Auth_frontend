@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const res = await axios.post(
-        `${BASE_URL}/apikeys`,
+        `${BASE_URL}/apikeys/createApiKey`,
         payload, // 👈 request body (e.g. { name })
         {
           headers: {
@@ -83,6 +83,34 @@ export const AuthProvider = ({ children }) => {
       return res.data;
     } catch (err) {
       console.error("API Keys fetch failed", err.response?.data || err.message);
+      throw err;
+    }
+  };
+
+  const revokeAllKeys = async () => {
+    if (!token) {
+      logout();
+      return;
+    }
+
+    try {
+      const res = await axios.put(
+        `${BASE_URL}/apikeys/revokeAllKeys`,
+        {}, // EMPTY BODY
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      return res.data;
+    } catch (err) {
+      console.error(
+        "Revoke all keys failed",
+        err.response?.data || err.message,
+      );
       throw err;
     }
   };
@@ -101,6 +129,7 @@ export const AuthProvider = ({ children }) => {
         logout,
         refreshDashboard: fetchDashboard, // 🔥 manual refresh hook
         createApiKeys,
+        revokeAllKeys,
       }}
     >
       {children}

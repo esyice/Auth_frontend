@@ -47,7 +47,10 @@ const Overview = () => {
       items: [
         { label: "Active Token", value: meta.totalTokens > 0 ? "Yes" : "No" },
         { label: "Number of Active Token", value: meta.totalTokens },
-        { label: "Last Token Issued", value: meta.lastIssuedToken.issuedAt },
+        {
+          label: "Last Token Issued",
+          value: meta?.lastIssuedToken?.issuedAt ?? "N/A",
+        },
       ],
     },
     {

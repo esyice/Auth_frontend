@@ -10,7 +10,8 @@ const ApiKeys = () => {
   const [expiryType, setExpiryType] = useState("1m"); // default 1 month
   const [customDate, setCustomDate] = useState("");
 
-  const { createApiKeys, refreshDashboard, tokenInfo } = useAuth();
+  const { createApiKeys, refreshDashboard, tokenInfo, revokeAllKeys } =
+    useAuth();
 
   const handleGenerate = async () => {
     if (!keyName.trim()) return;
@@ -36,6 +37,19 @@ const ApiKeys = () => {
     }
   };
 
+  const handlerevokeAllKeys = async () => {
+    console.log("btm clicked");
+
+    try {
+      await revokeAllKeys();
+      console.log("key revocked successfully");
+
+      await refreshDashboard();
+    } catch (err) {
+      console.error("Revoke all keys failed", err);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* ===== Header ===== */}
@@ -53,7 +67,11 @@ const ApiKeys = () => {
           label="Generate New Key"
           onClick={() => setOpen(true)}
         />
-        <DangerButton icon={<FiTrash2 />} label="Revoke All Keys" />
+        <DangerButton
+          icon={<FiTrash2 />}
+          label="Revoke All Keys"
+          onClick={handlerevokeAllKeys}
+        />
       </div>
 
       {/* ===== Keys List ===== */}
@@ -256,8 +274,10 @@ const SecondaryButton = ({ icon, label }) => (
   </button>
 );
 
-const DangerButton = ({ icon, label }) => (
+const DangerButton = ({ icon, label, onClick }) => (
   <button
+    type="button"
+    onClick={onClick}
     className="flex items-center justify-center gap-2
     px-4 py-2 rounded-lg
     bg-red-600 hover:bg-red-700
