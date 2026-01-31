@@ -44,7 +44,7 @@ const DashboardCard = ({ title, items, progress, icon, accent = "blue" }) => {
 
         {/* ===== Content ===== */}
         <div className="space-y-4">
-          {items.map(({ label, value, isBadge }) => (
+          {items.map(({ label, value, isBadge, type }) => (
             <div key={label}>
               <p className="text-sm text-slate-500 dark:text-slate-400">
                 {label}
@@ -52,15 +52,24 @@ const DashboardCard = ({ title, items, progress, icon, accent = "blue" }) => {
 
               {isBadge ? (
                 <span
-                  className="
+                  className={`
                     inline-flex items-center
                     px-3 py-1 mt-1
                     rounded-full text-sm font-medium
-                    bg-green-100 text-green-700
-                    dark:bg-green-500/20 dark:text-green-400
-                  "
+                    ${
+                      type === "status"
+                        ? value
+                          ? "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400"
+                          : "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400"
+                        : "bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-400"
+                    }
+                  `}
                 >
-                  {value}
+                  {type === "status"
+                    ? value
+                      ? "Active"
+                      : "Deactivated"
+                    : value}
                 </span>
               ) : (
                 <p className="mt-1 font-medium text-slate-900 dark:text-slate-100">

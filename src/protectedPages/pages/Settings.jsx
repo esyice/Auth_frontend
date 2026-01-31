@@ -10,8 +10,23 @@ import {
 import { useAuth } from "../../context/AuthContext";
 
 const Settings = () => {
-  // 🔹 Default values (remove later in one go)
-  const { user } = useAuth();
+  const { user, deactivateAccount, logout } = useAuth();
+
+  // Deactivate Account Handler
+  const handleDeactivateAccount = async () => {
+    const confirmed = window.confirm(
+      "This will deactivate your account.\n\nYou will be logged out immediately.",
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deactivateAccount();
+      logout(); // force logout after deactivation
+    } catch (err) {
+      console.error("Account deactivation failed", err);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -57,7 +72,12 @@ const Settings = () => {
 
             {/* Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
-              <DangerButton icon={<FiTrash2 />} label="Delete Account" />
+              <DangerButton
+                icon={<FiTrash2 />}
+                label="Delete Account"
+                onClick={handleDeactivateAccount}
+              />
+
               <SecondaryButton icon={<FiDownload />} label="Export Data" />
             </div>
           </div>
@@ -104,14 +124,22 @@ const ActionButton = ({ icon, label }) => (
 );
 
 const SecondaryButton = ({ icon, label }) => (
-  <button className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium w-full sm:w-auto">
+  <button className="hidden items-center justify-center gap-2 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium w-full sm:w-auto">
     {icon}
     {label}
   </button>
 );
 
-const DangerButton = ({ icon, label }) => (
-  <button className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium w-full sm:w-auto">
+const DangerButton = ({ icon, label, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="flex items-center justify-center gap-2
+      px-4 py-2 rounded-lg
+      bg-red-600 hover:bg-red-700
+      text-white text-sm font-medium
+      w-full sm:w-auto"
+  >
     {icon}
     {label}
   </button>

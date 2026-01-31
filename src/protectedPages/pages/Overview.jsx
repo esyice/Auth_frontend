@@ -28,6 +28,8 @@ const Overview = () => {
 
   const { usage } = safeData;
 
+  // console.log(user);
+
   const cards = [
     {
       title: "User Info",
@@ -37,7 +39,12 @@ const Overview = () => {
         { label: "Name", value: user.name },
         { label: "Email", value: user.email },
         { label: "User ID", value: user.id },
-        { label: "Account Status", value: user.status, isBadge: true },
+        {
+          label: "Account Status",
+          value: user.status, // boolean: true / false
+          isBadge: true,
+          type: "status", // 👈 important
+        },
       ],
     },
     {

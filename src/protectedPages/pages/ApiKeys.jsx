@@ -10,9 +10,16 @@ const ApiKeys = () => {
   const [expiryType, setExpiryType] = useState("1m"); // default 1 month
   const [customDate, setCustomDate] = useState("");
 
-  const { createApiKeys, refreshDashboard, tokenInfo, revokeAllKeys } =
-    useAuth();
+  const {
+    createApiKeys,
+    refreshDashboard,
+    tokenInfo,
+    revokeAllKeys,
+    revokeSingleKey,
+    regenerateSingleKey,
+  } = useAuth();
 
+  //handle generate new key
   const handleGenerate = async () => {
     if (!keyName.trim()) return;
 
@@ -37,16 +44,43 @@ const ApiKeys = () => {
     }
   };
 
+  //handle revoke all keys
   const handlerevokeAllKeys = async () => {
-    console.log("btm clicked");
-
     try {
       await revokeAllKeys();
-      console.log("key revocked successfully");
+      // console.log("key revocked successfully");
 
       await refreshDashboard();
     } catch (err) {
       console.error("Revoke all keys failed", err);
+    }
+  };
+
+  //handle revoke single key
+  const handleRevokeSingle = async (keyId) => {
+    if (!confirm("Are you sure you want to revoke this API key?")) return;
+
+    try {
+      await revokeSingleKey(keyId);
+      await refreshDashboard();
+    } catch (err) {
+      console.error("Revoke key failed", err);
+    }
+  };
+
+  //handle regenerate single key
+  const handleRegenerateSingle = async (keyId) => {
+    if (!confirm("This will invalidate the old key. Continue?")) return;
+
+    try {
+      const res = await regenerateSingleKey(keyId);
+
+      // optional: show new key in toast / modal
+      alert(`New API Key:\n\n${res.apiKey}`);
+
+      await refreshDashboard();
+    } catch (err) {
+      console.error("Regenerate key failed", err);
     }
   };
 
@@ -77,7 +111,14 @@ const ApiKeys = () => {
       {/* ===== Keys List ===== */}
       <div className="space-y-4">
         {tokenInfo &&
-          tokenInfo.map((item) => <KeyCard key={item.id} item={item} />)}
+          tokenInfo.map((item) => (
+            <KeyCard
+              key={item.id}
+              item={item}
+              onRevoke={handleRevokeSingle}
+              onRegenerate={handleRegenerateSingle}
+            />
+          ))}
       </div>
 
       {/* ===== Generate Key Modal ===== */}
@@ -176,7 +217,7 @@ export default ApiKeys;
 
 /* ================== Key Card ================== */
 
-const KeyCard = ({ item }) => {
+const KeyCard = ({ item, onRevoke, onRegenerate }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -235,8 +276,17 @@ const KeyCard = ({ item }) => {
 
             {/* Right: Actions */}
             <div className="flex flex-col sm:flex-row gap-2">
-              <SecondaryButton icon={<FiRefreshCcw />} label="Regenerate" />
-              <DangerOutlineButton icon={<FiTrash2 />} label="Revoke" />
+              <SecondaryButton
+                icon={<FiRefreshCcw />}
+                label="Regenerate"
+                onClick={() => onRegenerate(item.id)}
+              />
+
+              <DangerOutlineButton
+                icon={<FiTrash2 />}
+                label="Revoke"
+                onClick={() => onRevoke(item.id)}
+              />
             </div>
           </div>
         </div>
@@ -261,13 +311,14 @@ const PrimaryButton = ({ icon, label, onClick }) => (
   </button>
 );
 
-const SecondaryButton = ({ icon, label }) => (
+const SecondaryButton = ({ icon, label, onClick }) => (
   <button
+    onClick={onClick}
     className="flex items-center justify-center gap-2
-    px-4 py-2 rounded-lg
-    bg-slate-800 hover:bg-slate-700
-    text-slate-200 text-sm font-medium
-    w-full sm:w-auto"
+      px-4 py-2 rounded-lg
+      bg-slate-800 hover:bg-slate-700
+      text-slate-200 text-sm font-medium
+      w-full sm:w-auto"
   >
     {icon}
     {label}
@@ -289,8 +340,9 @@ const DangerButton = ({ icon, label, onClick }) => (
   </button>
 );
 
-const DangerOutlineButton = ({ icon, label }) => (
+const DangerOutlineButton = ({ icon, label, onClick }) => (
   <button
+    onClick={onClick}
     className="flex items-center justify-center gap-2
     px-4 py-2 rounded-lg
     border border-red-500/30

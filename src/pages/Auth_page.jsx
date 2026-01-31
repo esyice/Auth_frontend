@@ -77,11 +77,11 @@ const AuthPage = () => {
                 error={errors.name}
                 {...register("name", { required: true })}
               />
-              <Input
+              {/* <Input
                 label="Address"
                 error={errors.address}
                 {...register("address", { required: true })}
-              />
+              /> */}
               <Input label="Mobile (optional)" {...register("mobile")} />
             </>
           )}
