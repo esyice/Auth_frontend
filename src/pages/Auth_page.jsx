@@ -1,12 +1,30 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import useAuthApi from "../hooks/useAuthApi";
 import { useAuth } from "../context/AuthContext";
 
 const AuthPage = () => {
-  const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate();
+  const { login } = useAuth();
+
+  const [mode, setMode] = useState("login"); // login | register | reset
+  const [step, setStep] = useState("email"); // email | otp | complete
+  const [verifiedEmail, setVerifiedEmail] = useState("");
+
+  /* ================= OTP COOLDOWN ================= */
+  const [cooldown, setCooldown] = useState(0);
+
+  // countdown effect
+  useEffect(() => {
+    if (cooldown <= 0) return;
+
+    const timer = setInterval(() => {
+      setCooldown((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   const {
     register,
@@ -18,98 +36,254 @@ const AuthPage = () => {
   const {
     register: registerApi,
     login: loginApi,
+    sendOtp,
+    verifyOtp,
+    resetPassword,
     loading,
     error,
   } = useAuthApi();
 
-  const { login } = useAuth(); // ✅ context login
-
+  /* ================= SUBMIT ================= */
   const onSubmit = async (data) => {
     try {
-      if (isLogin) {
+      /* ===== LOGIN ===== */
+      if (mode === "login") {
         const res = await loginApi({
           email: data.email,
           password: data.password,
         });
 
-        // 🔥 single source of truth
         login(res.token);
         navigate("/", { replace: true });
-      } else {
-        await registerApi(data);
-        setIsLogin(true);
-        reset();
+        return;
       }
-    } catch {
-      // error already handled in hook
-    }
+
+      /* ===== REGISTER ===== */
+      if (mode === "register") {
+        if (step === "email") {
+          await sendOtp({ type: "email", identifier: data.email });
+          setVerifiedEmail(data.email);
+          setCooldown(30); // 🔥 start cooldown
+          setStep("otp");
+          return;
+        }
+
+        if (step === "otp") {
+          await verifyOtp({
+            type: "email",
+            identifier: verifiedEmail,
+            otp: data.otp,
+          });
+          setStep("complete");
+          return;
+        }
+
+        if (step === "complete") {
+          await registerApi({
+            name: data.name,
+            email: verifiedEmail,
+            password: data.password,
+          });
+
+          setMode("login");
+          setStep("email");
+          reset();
+          return;
+        }
+      }
+
+      /* ===== RESET PASSWORD ===== */
+      if (mode === "reset") {
+        if (step === "email") {
+          await sendOtp({ type: "email", identifier: data.email });
+          setVerifiedEmail(data.email);
+          setCooldown(30); // 🔥 start cooldown
+          setStep("otp");
+          return;
+        }
+
+        if (step === "otp") {
+          await verifyOtp({
+            type: "email",
+            identifier: verifiedEmail,
+            otp: data.otp,
+          });
+          setStep("complete");
+          return;
+        }
+
+        if (step === "complete") {
+          await resetPassword({
+            email: verifiedEmail,
+            newPassword: data.newPassword,
+          });
+
+          alert("Password reset successful");
+          setMode("login");
+          setStep("email");
+          reset();
+        }
+      }
+    } catch {}
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
       <div className="w-full max-w-md bg-gray-900/80 backdrop-blur-md border border-gray-700 rounded-2xl shadow-2xl p-8">
-        {/* Toggle */}
+        {/* ================= TOGGLE ================= */}
         <div className="flex justify-center mb-6">
           <button
-            onClick={() => setIsLogin(true)}
+            onClick={() => {
+              setMode("login");
+              setStep("email");
+            }}
             className={`px-4 py-2 font-medium rounded-l-lg ${
-              isLogin ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-300"
+              mode === "login"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-700 text-gray-300"
             }`}
           >
             Login
           </button>
+
           <button
-            onClick={() => setIsLogin(false)}
+            onClick={() => {
+              setMode("register");
+              setStep("email");
+            }}
             className={`px-4 py-2 font-medium rounded-r-lg ${
-              !isLogin ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-300"
+              mode === "register"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-700 text-gray-300"
             }`}
           >
             Register
           </button>
         </div>
 
-        {/* FORM */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          {!isLogin && (
+          {/* ===== LOGIN ===== */}
+          {mode === "login" && (
+            <>
+              <Input
+                label="Email"
+                type="email"
+                error={errors.email}
+                {...register("email", { required: true })}
+              />
+              <Input
+                label="Password"
+                type="password"
+                error={errors.password}
+                {...register("password", { required: true })}
+              />
+
+              <div className="text-right">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode("reset");
+                    setStep("email");
+                  }}
+                  className="text-sm text-blue-400 hover:underline"
+                >
+                  Forgot Password?
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* ===== REGISTER OR RESET - EMAIL STEP ===== */}
+          {(mode === "register" || mode === "reset") && step === "email" && (
+            <Input
+              label="Email"
+              type="email"
+              error={errors.email}
+              {...register("email", { required: true })}
+            />
+          )}
+
+          {/* ===== OTP STEP ===== */}
+          {(mode === "register" || mode === "reset") && step === "otp" && (
+            <>
+              <p className="text-gray-400 text-sm">
+                OTP sent to: <span className="text-white">{verifiedEmail}</span>
+              </p>
+
+              <Input
+                label="Enter OTP"
+                error={errors.otp}
+                {...register("otp", { required: true })}
+              />
+
+              {/* 🔥 RESEND BUTTON WITH COOLDOWN */}
+              <div className="text-center mt-2">
+                <button
+                  type="button"
+                  disabled={cooldown > 0}
+                  onClick={async () => {
+                    await sendOtp({
+                      type: "email",
+                      identifier: verifiedEmail,
+                    });
+                    setCooldown(30);
+                  }}
+                  className={`text-sm ${
+                    cooldown > 0
+                      ? "text-gray-500 cursor-not-allowed"
+                      : "text-blue-400 hover:underline"
+                  }`}
+                >
+                  {cooldown > 0 ? `Resend OTP in ${cooldown}s` : "Resend OTP"}
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* ===== REGISTER COMPLETE ===== */}
+          {mode === "register" && step === "complete" && (
             <>
               <Input
                 label="Name"
                 error={errors.name}
                 {...register("name", { required: true })}
               />
-              {/* <Input
-                label="Address"
-                error={errors.address}
-                {...register("address", { required: true })}
-              /> */}
-              <Input label="Mobile (optional)" {...register("mobile")} />
+              <Input
+                label="Password"
+                type="password"
+                error={errors.password}
+                {...register("password", { required: true })}
+              />
             </>
           )}
 
-          <Input
-            label="Email"
-            type="email"
-            error={errors.email}
-            {...register("email", { required: true })}
-          />
+          {/* ===== RESET COMPLETE ===== */}
+          {mode === "reset" && step === "complete" && (
+            <Input
+              label="New Password"
+              type="password"
+              error={errors.newPassword}
+              {...register("newPassword", { required: true })}
+            />
+          )}
 
-          <Input
-            label="Password"
-            type="password"
-            error={errors.password}
-            {...register("password", { required: true })}
-          />
-
+          {/* ===== BUTTON ===== */}
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-2 rounded-md font-medium ${
-              loading
-                ? "bg-blue-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
-            } text-white`}
+            className="w-full py-2 rounded-md font-medium bg-blue-600 hover:bg-blue-700 text-white"
           >
-            {loading ? "Processing..." : isLogin ? "Login" : "Register"}
+            {loading
+              ? "Processing..."
+              : mode === "login"
+                ? "Login"
+                : step === "email"
+                  ? "Send OTP"
+                  : step === "otp"
+                    ? "Verify OTP"
+                    : mode === "register"
+                      ? "Create Account"
+                      : "Reset Password"}
           </button>
         </form>
 
@@ -121,7 +295,8 @@ const AuthPage = () => {
 
 export default AuthPage;
 
-/* ===== Reusable Input ===== */
+/* ================= INPUT ================= */
+
 const Input = React.forwardRef(({ label, error, ...props }, ref) => (
   <div>
     <label className="text-gray-300 text-sm">{label}</label>

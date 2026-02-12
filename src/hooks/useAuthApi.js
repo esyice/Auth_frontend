@@ -39,5 +39,30 @@ export default function useAuthApi() {
     }
   };
 
-  return { register, login, loading, error };
+  // Optional: OTP functions if your backend supports it
+  const sendOtp = async (payload) => {
+    const res = await axios.post(`${BASE_URL}/auth/send-otp`, payload);
+    return res.data;
+  };
+
+  const verifyOtp = async (payload) => {
+    const res = await axios.post(`${BASE_URL}/auth/verify-otp`, payload);
+    return res.data;
+  };
+
+  //Optional: Reset password function
+  const resetPassword = async (payload) => {
+    const res = await axios.post(`${BASE_URL}/auth/reset-password`, payload);
+    return res.data;
+  };
+
+  return {
+    login,
+    register,
+    sendOtp,
+    verifyOtp,
+    resetPassword,
+    loading,
+    error,
+  };
 }
