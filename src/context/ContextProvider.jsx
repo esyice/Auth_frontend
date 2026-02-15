@@ -1,7 +1,7 @@
-import axios from "axios";
-import { createContext, useContext, useEffect, useState } from "react";
+import axios, { Axios } from "axios";
+import { useEffect, useState } from "react";
+import AuthContext from "./Context.js";
 
-const AuthContext = createContext(null);
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export const AuthProvider = ({ children }) => {
@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
     if (!token) return;
 
     try {
-      const res = await fetch(`${BASE_URL}/dashboard`, {
+      const res = await axios.get(`${BASE_URL}/dashboard`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -26,8 +26,8 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      const data = await res.json();
-      setDashboard(data);
+      setDashboard(res.data);
+      return res.data;
     } catch (err) {
       console.error("Dashboard fetch failed", err);
     } finally {
@@ -45,6 +45,7 @@ export const AuthProvider = ({ children }) => {
 
     setLoading(true);
     fetchDashboard();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   /* ================= LOGIN ================= */
@@ -143,6 +144,36 @@ export const AuthProvider = ({ children }) => {
     return res.data;
   };
 
+  /// ================= GET ALL USERS IN A PROJECT =================
+  const getAllProjectUsers = async (
+    projectId,
+    page = 1,
+    limit = 10,
+    search = "",
+    sortBy = "createdAt",
+    sortOrder = "desc",
+    status = null,
+  ) => {
+    const res = await axios.get(
+      `${BASE_URL}/developer/projects/${projectId}/users`,
+      {
+        params: {
+          page,
+          limit,
+          search,
+          sortBy,
+          sortOrder,
+          status,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    return res.data;
+  };
+
   /* ================= CONTEXT VALUE ================= */
   return (
     <AuthContext.Provider
@@ -164,6 +195,7 @@ export const AuthProvider = ({ children }) => {
         revokeSingleKey,
         regenerateSingleKey,
         deactivateAccount,
+        getAllProjectUsers,
       }}
     >
       {children}
@@ -172,6 +204,3 @@ export const AuthProvider = ({ children }) => {
 };
 
 /* ================= HOOK ================= */
-export const useAuth = () => {
-  return useContext(AuthContext);
-};

@@ -9,6 +9,7 @@ import Endpoints from "../protectedPages/pages/Endpoints.jsx";
 import Settings from "../protectedPages/pages/Settings.jsx";
 import Usage from "../protectedPages/pages/Usage.jsx";
 import ApiKeys from "../protectedPages/pages/ApiKeys.jsx";
+import Users from "../protectedPages/pages/Users.jsx";
 
 const GlobalRoutes = () => {
   return (
@@ -33,6 +34,7 @@ const GlobalRoutes = () => {
         <Route path="dashboard/settings" element={<Settings />} />
         <Route path="dashboard/usage" element={<Usage />} />
         <Route path="dashboard/api-keys" element={<ApiKeys />} />
+        <Route path="dashboard/users" element={<Users />} />
 
         {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />

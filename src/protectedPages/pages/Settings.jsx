@@ -7,7 +7,7 @@ import {
   FiDownload,
   FiSlash,
 } from "react-icons/fi";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/Context.js";
 
 const Settings = () => {
   const { user, deactivateAccount, logout } = useAuth();

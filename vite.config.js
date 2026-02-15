@@ -4,10 +4,5 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://vite.dev/config/
 export default defineConfig({
-  darkMode: "class", // ✅ enables manual dark mode via class
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
-  theme: {
-    extend: {},
-  },
   plugins: [react(), tailwindcss()],
 });

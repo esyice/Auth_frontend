@@ -3,7 +3,7 @@ import { useState } from "react";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-export default function useAuthApi() {
+const useAuthApi = ()=> {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -66,3 +66,5 @@ export default function useAuthApi() {
     error,
   };
 }
+
+export default useAuthApi;

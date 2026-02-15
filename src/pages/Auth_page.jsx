@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import useAuthApi from "../hooks/useAuthApi";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/Context.js";
 
 const AuthPage = () => {
   const navigate = useNavigate();
@@ -124,7 +124,9 @@ const AuthPage = () => {
           reset();
         }
       }
-    } catch {}
+    } catch {
+      console.error("Authentication error");
+    }
   };
 
   return (

@@ -10,7 +10,7 @@ import {
   FiSettings,
 } from "react-icons/fi";
 import { NavLink } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/Context.js";
 
 export default function Navbar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);

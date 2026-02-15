@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { FiKey, FiCopy, FiRefreshCcw, FiTrash2, FiPlus } from "react-icons/fi";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/Context.js";
 
 const ApiKeys = () => {
-  const [keys] = useState(); // remove later
+  // const [keys] = useState(); // remove later
   const [open, setOpen] = useState(false);
   const [keyName, setKeyName] = useState("");
   const [submitting, setSubmitting] = useState(false);

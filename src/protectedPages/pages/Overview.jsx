@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+// import { useEffect, useState } from "react";
 import DashboardCard from "../../components/DashboardCard";
 import { FiUser, FiShield, FiBarChart2 } from "react-icons/fi";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/Context.js";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
