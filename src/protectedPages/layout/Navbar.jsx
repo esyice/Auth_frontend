@@ -84,6 +84,12 @@ export default function Navbar() {
             label="API Keys"
             onClick={() => setSidebarOpen(false)}
           />
+          <SidebarItem
+            to="/dashboard/users"
+            icon={<FiUser />}
+            label="Users"
+            onClick={() => setSidebarOpen(false)}
+          />
 
           <SidebarItem
             to="/dashboard/endpoints"
