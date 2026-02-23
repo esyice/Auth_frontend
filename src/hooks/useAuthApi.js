@@ -3,68 +3,81 @@ import { useState } from "react";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-const useAuthApi = ()=> {
+const useAuthApi = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const register = async (payload) => {
+  const handleRequest = async (requestFn, fallbackMessage) => {
     setLoading(true);
     setError(null);
+
     try {
-      const res = await axios.post(`${BASE_URL}/auth/register`, payload, {
-        headers: { "Content-Type": "application/json" },
-      });
+      const res = await requestFn();
       return res.data;
     } catch (err) {
-      setError(err.response?.data?.message || "Register failed");
+      const message =
+        err?.response?.data?.message || err?.message || fallbackMessage;
+
+      setError(message);
       throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  const login = async (payload) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await axios.post(`${BASE_URL}/auth/login`, payload, {
-        headers: { "Content-Type": "application/json" },
-      });
-      return res.data;
-    } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
+  const register = (payload) =>
+    handleRequest(
+      () => axios.post(`${BASE_URL}/auth/register`, payload),
+      "Register failed",
+    );
 
-  // Optional: OTP functions if your backend supports it
-  const sendOtp = async (payload) => {
-    const res = await axios.post(`${BASE_URL}/auth/send-otp`, payload);
-    return res.data;
-  };
+  const login = (payload) =>
+    handleRequest(
+      () => axios.post(`${BASE_URL}/auth/login`, payload),
+      "Login failed",
+    );
 
-  const verifyOtp = async (payload) => {
-    const res = await axios.post(`${BASE_URL}/auth/verify-otp`, payload);
-    return res.data;
-  };
+  const sendRegisterOtp = (payload) =>
+    handleRequest(
+      () => axios.post(`${BASE_URL}/auth/register/send-otp`, payload),
+      "Failed to send OTP",
+    );
 
-  //Optional: Reset password function
-  const resetPassword = async (payload) => {
-    const res = await axios.post(`${BASE_URL}/auth/reset-password`, payload);
-    return res.data;
-  };
+  const verifyRegisterOtp = (payload) =>
+    handleRequest(
+      () => axios.post(`${BASE_URL}/auth/register/verify-otp`, payload),
+      "OTP verification failed",
+    );
+
+  const sendResetOtp = (payload) =>
+    handleRequest(
+      () => axios.post(`${BASE_URL}/auth/reset/send-otp`, payload),
+      "Failed to send OTP",
+    );
+
+  const verifyResetOtp = (payload) =>
+    handleRequest(
+      () => axios.post(`${BASE_URL}/auth/reset/verify-otp`, payload),
+      "OTP verification failed",
+    );
+
+  const resetPassword = (payload) =>
+    handleRequest(
+      () => axios.post(`${BASE_URL}/auth/reset-password`, payload),
+      "Password reset failed",
+    );
 
   return {
     login,
     register,
-    sendOtp,
-    verifyOtp,
+    sendRegisterOtp,
+    verifyRegisterOtp,
+    sendResetOtp,
+    verifyResetOtp,
     resetPassword,
     loading,
     error,
   };
-}
+};
 
 export default useAuthApi;

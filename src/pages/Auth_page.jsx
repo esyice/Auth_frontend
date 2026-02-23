@@ -36,8 +36,10 @@ const AuthPage = () => {
   const {
     register: registerApi,
     login: loginApi,
-    sendOtp,
-    verifyOtp,
+    sendRegisterOtp,
+    verifyRegisterOtp,
+    sendResetOtp,
+    verifyResetOtp,
     resetPassword,
     loading,
     error,
@@ -61,19 +63,24 @@ const AuthPage = () => {
       /* ===== REGISTER ===== */
       if (mode === "register") {
         if (step === "email") {
-          await sendOtp({ type: "email", identifier: data.email });
+          await sendRegisterOtp({
+            type: "email",
+            identifier: data.email,
+          });
+
           setVerifiedEmail(data.email);
-          setCooldown(30); // 🔥 start cooldown
+          setCooldown(30);
           setStep("otp");
           return;
         }
 
         if (step === "otp") {
-          await verifyOtp({
+          await verifyRegisterOtp({
             type: "email",
             identifier: verifiedEmail,
             otp: data.otp,
           });
+
           setStep("complete");
           return;
         }
@@ -95,19 +102,24 @@ const AuthPage = () => {
       /* ===== RESET PASSWORD ===== */
       if (mode === "reset") {
         if (step === "email") {
-          await sendOtp({ type: "email", identifier: data.email });
+          await sendResetOtp({
+            type: "email",
+            identifier: data.email,
+          });
+
           setVerifiedEmail(data.email);
-          setCooldown(30); // 🔥 start cooldown
+          setCooldown(30);
           setStep("otp");
           return;
         }
 
         if (step === "otp") {
-          await verifyOtp({
+          await verifyResetOtp({
             type: "email",
             identifier: verifiedEmail,
             otp: data.otp,
           });
+
           setStep("complete");
           return;
         }
@@ -122,10 +134,11 @@ const AuthPage = () => {
           setMode("login");
           setStep("email");
           reset();
+          return;
         }
       }
-    } catch {
-      console.error("Authentication error");
+    } catch (err) {
+      console.error("Authentication error:", err);
     }
   };
 
@@ -195,7 +208,7 @@ const AuthPage = () => {
             </>
           )}
 
-          {/* ===== REGISTER OR RESET - EMAIL STEP ===== */}
+          {/* ===== EMAIL STEP (REGISTER / RESET) ===== */}
           {(mode === "register" || mode === "reset") && step === "email" && (
             <Input
               label="Email"
@@ -218,16 +231,24 @@ const AuthPage = () => {
                 {...register("otp", { required: true })}
               />
 
-              {/* 🔥 RESEND BUTTON WITH COOLDOWN */}
+              {/* 🔥 RESEND BUTTON WITH CORRECT ROUTE */}
               <div className="text-center mt-2">
                 <button
                   type="button"
                   disabled={cooldown > 0}
                   onClick={async () => {
-                    await sendOtp({
-                      type: "email",
-                      identifier: verifiedEmail,
-                    });
+                    if (mode === "register") {
+                      await sendRegisterOtp({
+                        type: "email",
+                        identifier: verifiedEmail,
+                      });
+                    } else {
+                      await sendResetOtp({
+                        type: "email",
+                        identifier: verifiedEmail,
+                      });
+                    }
+
                     setCooldown(30);
                   }}
                   className={`text-sm ${
