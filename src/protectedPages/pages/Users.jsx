@@ -231,7 +231,7 @@ const Users = () => {
 
             <Button onClick={() => setCreateOpened(true)}>Create User</Button>
 
-            {selectedRecords.length > 0 && (
+            {/* {selectedRecords.length > 0 && (
               <>
                 <Button color="blue" onClick={() => setBulkEditOpened(true)}>
                   Bulk Edit ({selectedRecords.length})
@@ -241,7 +241,7 @@ const Users = () => {
                   Delete Selected
                 </Button>
               </>
-            )}
+            )} */}
           </Group>
 
           <DataTable
@@ -250,8 +250,8 @@ const Users = () => {
             highlightOnHover
             fetching={loading}
             records={records}
-            selectedRecords={selectedRecords}
-            onSelectedRecordsChange={setSelectedRecords}
+            // selectedRecords={selectedRecords}
+            // onSelectedRecordsChange={setSelectedRecords}
             columns={[
               { accessor: "name", sortable: true },
               { accessor: "email", sortable: true },

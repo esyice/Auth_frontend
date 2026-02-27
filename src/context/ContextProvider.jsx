@@ -144,6 +144,10 @@ export const AuthProvider = ({ children }) => {
       })
       .then((r) => r.data);
 
+  // api key usage
+  const getApiKeyUsage = (apiKeyId) =>
+    api.get(`/dashboard/usage/${apiKeyId}`).then((r) => r.data);
+
   /* ================= CONTEXT VALUE ================= */
   return (
     <AuthContext.Provider
@@ -162,6 +166,7 @@ export const AuthProvider = ({ children }) => {
         createApiKeys,
         revokeAllKeys,
         revokeSingleKey,
+        getApiKeyUsage,
         regenerateSingleKey,
         deactivateAccount,
 
