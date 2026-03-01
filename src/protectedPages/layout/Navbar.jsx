@@ -98,12 +98,12 @@ export default function Navbar() {
             onClick={() => setSidebarOpen(false)}
           />
 
-          <SidebarItem
+          {/* <SidebarItem
             to="/dashboard/usage"
             icon={<FiBarChart2 />}
             label="Usage"
             onClick={() => setSidebarOpen(false)}
-          />
+          /> */}
 
           <SidebarItem
             to="/dashboard/settings"

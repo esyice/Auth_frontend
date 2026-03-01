@@ -32,7 +32,7 @@ const GlobalRoutes = () => {
         {/* Other children */}
         <Route path="dashboard/endpoints" element={<Endpoints />} />
         <Route path="dashboard/settings" element={<Settings />} />
-        <Route path="dashboard/usage" element={<Usage />} />
+        {/* <Route path="dashboard/usage" element={<Usage />} /> */}
         <Route path="dashboard/api-keys" element={<ApiKeys />} />
         <Route path="dashboard/users" element={<Users />} />
 
